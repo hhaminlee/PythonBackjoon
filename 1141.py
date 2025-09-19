@@ -3,7 +3,7 @@
 # 연관이 없는 것들만 더한 값이 부분집합의 최대 크기이기 때문에
 
 n = int(input())
-word_list = list(set(input().strip() for _ in range(n)))
+word_list = list(set(input().strip() for _ in range(n))) # 중복값이 들어오면 제대로 잡지 못함
 
 word_list.sort(key=len, reverse=True)
 
