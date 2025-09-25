@@ -1,3 +1,5 @@
+# 백준 1417 국회의원선거
+
 import heapq
 n = int(input())
 heap = []
