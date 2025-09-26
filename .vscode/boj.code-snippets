@@ -1,0 +1,19 @@
+{
+  "BOJ Python Template": {
+    "prefix": "boj",
+    "body": [
+      "# 백준 ${1:문제번호} ${2:제목}",
+      "# 해결 방법: $3",
+      "# 문제 요약: $4",
+      "# 처음 접근: $5",
+      "# 시행착오: $6",
+      "# 배운점: $7",
+      "",
+      "import sys",
+      "input = sys.stdin.readline",
+      "",
+      "# TODO",
+    ],
+    "description": "백준 풀이 Python boiler plate"
+  }
+}

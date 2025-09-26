@@ -390,9 +390,11 @@ def build_markdown(meta, code, auto_content=None):
             out.append(f"- {input_line}\n")
         out.append("\n### 출력\n")
         out.append(f"- {detailed_io.get('output_desc', '결과값')}\n\n")
+        out.append("***\n\n")
     elif summary:
         out.append("## 문제 요약\n")
         out.append(f"{summary}\n\n")
+        out.append("***\n\n")
 
     # 풀이 아이디어
     out.append("## 풀이 아이디어\n")
