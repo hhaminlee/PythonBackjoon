@@ -11,8 +11,7 @@
       "",
       "import sys",
       "input = sys.stdin.readline",
-      "",
-      "# TODO",
+      ""
     ],
     "description": "백준 풀이 Python boiler plate"
   }
