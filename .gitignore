@@ -3,3 +3,6 @@ posts/
 
 # 백준 문제 캐시
 .boj_cache/
+
+# 환경 변수
+.env

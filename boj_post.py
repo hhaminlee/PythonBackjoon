@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 import argparse, re, pathlib, sys, time, os, json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# .env 파일 로드
+load_dotenv()
 
 # --- 네트워킹 / 파싱 의존성 ---
 try:
