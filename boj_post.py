@@ -56,25 +56,53 @@ def fetch_problem(num, cache_dir=".boj_cache", timeout=10):
     cache.mkdir(exist_ok=True)
     cache_file = cache / f"{num}.html"
     html_text = None
+    
     if cache_file.exists():
+        print(f"[DEBUG] 캐시에서 로딩: {cache_file}")
         html_text = cache_file.read_text(encoding="utf-8")
     else:
         url = f"{BASE}{num}"
+        print(f"[DEBUG] URL 요청: {url}")
         try:
             resp = requests.get(url, headers={"User-Agent": UA}, timeout=timeout)
+            print(f"[DEBUG] 응답 코드: {resp.status_code}")
             if resp.status_code == 200:
                 html_text = resp.text
                 cache_file.write_text(html_text, encoding="utf-8")
                 time.sleep(0.5)
-            else: return None
-        except requests.RequestException: return None
+            else:
+                print(f"[ERROR] HTTP 오류: {resp.status_code}")
+                return None
+        except requests.RequestException as e:
+            print(f"[ERROR] 네트워크 요청 실패: {e}")
+            return None
 
     try:
         soup = BeautifulSoup(html_text, "html.parser")
-        title = soup.select_one("#problem_title").get_text(strip=True)
-        description = soup.select_one("#problem_description").get_text("\n", strip=True)
+        
+        title_elem = soup.select_one("#problem_title")
+        desc_elem = soup.select_one("#problem_description")
+        
+        print(f"[DEBUG] title 요소 발견: {title_elem is not None}")
+        print(f"[DEBUG] description 요소 발견: {desc_elem is not None}")
+        
+        if not title_elem:
+            print("[ERROR] #problem_title 요소를 찾을 수 없습니다")
+            return None
+        if not desc_elem:
+            print("[ERROR] #problem_description 요소를 찾을 수 없습니다")
+            return None
+            
+        title = title_elem.get_text(strip=True)
+        description = desc_elem.get_text("\n", strip=True)
+        
+        print(f"[DEBUG] 제목: {title}")
         return {"title": title, "description": description}
-    except Exception:
+        
+    except Exception as e:
+        print(f"[ERROR] HTML 파싱 중 오류: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 # --- AI 분석 로직 (핵심) ---
