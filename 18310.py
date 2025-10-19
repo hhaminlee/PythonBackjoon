@@ -1,3 +1,4 @@
+# 백준 18310 안테나
 n = int(input())
 home = list(map(int, input().split()))
 

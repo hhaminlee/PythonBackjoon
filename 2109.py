@@ -1,3 +1,4 @@
+# 백준 2109 순회강연
 import heapq
 
 n = int(input())

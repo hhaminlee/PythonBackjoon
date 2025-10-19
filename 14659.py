@@ -1,3 +1,4 @@
+# 백준 14659 한조서열정리하고옴ㅋㅋ
 import sys
 input = sys.stdin.readline
 

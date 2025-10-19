@@ -1,3 +1,4 @@
+# 백준 2346 풍선 터뜨리기
 n = int(input())
 balloon = list(map(int, input().split()))
 balloon_with_index = list(enumerate(balloon, start=1))

@@ -1,3 +1,4 @@
+# 백준 2012 등수 매기기
 import sys
 input = sys.stdin.readline
 n = int(input())

@@ -1,3 +1,4 @@
+# 백준 1977 완전제곱수
 import math
 a = int(input())
 b = int(input())

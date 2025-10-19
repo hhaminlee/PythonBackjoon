@@ -1,3 +1,4 @@
+# 백준 1260 DFS와 BFS
 from collections import deque, defaultdict
 
 def dfs(graph, start_node):

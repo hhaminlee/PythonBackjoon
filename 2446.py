@@ -1,3 +1,4 @@
+# 백준 2446 별 찍기 - 9
 n = int(input())
 for i in range(n):
     print(" " * i, end='')

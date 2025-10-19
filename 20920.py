@@ -1,3 +1,4 @@
+# 백준 20920 영단어 암기는 괴로워
 import sys
 from collections import Counter
 input = sys.stdin.readline

@@ -1,3 +1,4 @@
+# 백준 1755 숫자놀이
 m, n = map(int, input().split())
 alpha = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
 num_to_alpha = []

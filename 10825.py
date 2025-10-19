@@ -1,3 +1,4 @@
+# 백준 10825 국영수
 n = int(input())
 students = []
 for _ in range(n):

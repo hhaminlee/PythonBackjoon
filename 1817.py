@@ -1,3 +1,4 @@
+# 백준 1817 짐 챙기는 숌
 n, m = map(int, input().split())
 result = [0] * n
 idx = 0 # 담긴 상자의 인덱스

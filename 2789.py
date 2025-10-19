@@ -1,3 +1,4 @@
+# 백준 2789 유학 금지
 sentence = input()
 cam = ['C', 'A' ,'M', 'B', 'R', 'I', 'D', 'G', 'E']
 result = []

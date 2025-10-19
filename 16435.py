@@ -1,3 +1,4 @@
+# 백준 16435 스네이크버드
 n, l = list(map(int, input().split()))
 h = list(map(int, input().split()))
 sorted_h = sorted(h)

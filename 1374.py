@@ -1,3 +1,4 @@
+# 백준 1374 강의실
 import heapq
 import sys
 input = sys.stdin.readline

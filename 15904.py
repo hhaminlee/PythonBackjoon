@@ -1,3 +1,4 @@
+# 백준 15904 UCPC는 무엇의 약자일까?
 words = input()
 
 target = "UCPC"  

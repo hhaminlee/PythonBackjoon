@@ -1,3 +1,4 @@
+# 백준 1946 신입 사원
 import sys
 input = sys.stdin.readline
 

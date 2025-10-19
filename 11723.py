@@ -1,3 +1,4 @@
+# 백준 11723 집합
 import sys
 input = sys.stdin.readline
 

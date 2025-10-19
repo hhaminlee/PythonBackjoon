@@ -1,3 +1,4 @@
+# 백준 17626 Four Squares
 n = int(input())
 result = 0
 dp = [0, 1]

@@ -1,3 +1,4 @@
+# 백준 1431 시리얼 번호
 import sys
 input = sys.stdin.readline
 

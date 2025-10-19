@@ -1,3 +1,4 @@
+# 백준 11651 좌표 정렬하기 2
 import sys
 input = sys.stdin.readline
 

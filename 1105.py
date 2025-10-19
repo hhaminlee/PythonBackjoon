@@ -1,3 +1,4 @@
+# 백준 1105 팔
 l, r = input().split()
 min_count = float('inf')
 for i in range(int(l), int(r)+1):

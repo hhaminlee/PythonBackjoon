@@ -1,3 +1,4 @@
+# 백준 15975 화살표 그리기
 import sys
 from collections import defaultdict
 input = sys.stdin.readline

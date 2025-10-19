@@ -1,3 +1,4 @@
+# 백준 2217 로프
 n = int(input())
 lopes = [int(input()) for _ in range(n)]
 lopes.sort()

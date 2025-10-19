@@ -1,3 +1,4 @@
+# 백준 1138 한 줄로 서기
 n = int(input())
 
 height = list(map(int, input().split()))

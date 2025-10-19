@@ -1,3 +1,4 @@
+# 백준 18870 좌표 압축
 import sys
 input = sys.stdin.readline
 

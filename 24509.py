@@ -1,3 +1,4 @@
+# 백준 24509 상품의 주인은?
 import sys
 input = sys.stdin.readline
 d = {}

@@ -1,3 +1,4 @@
+# 백준 16953 A → B
 a, b = map(int, input().split())
 result = -1
 while b > 0:

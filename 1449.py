@@ -1,3 +1,4 @@
+# 백준 1449 수리공 항승
 n, l = map(int, input().split())
 leaks = sorted(list(map(int, input().split())))
 cnt = 0

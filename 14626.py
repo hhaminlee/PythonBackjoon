@@ -1,3 +1,4 @@
+# 백준 14626 ISBN
 isbn = input()
 
 result = 0

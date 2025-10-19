@@ -1,3 +1,4 @@
+# 백준 11000 강의실 배정
 import sys
 import heapq
 input = sys.stdin.readline

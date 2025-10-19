@@ -1,3 +1,4 @@
+# 백준 24051 알고리즘 수업 - 삽입 정렬 1
 import sys
 input = sys.stdin.readline
 

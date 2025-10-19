@@ -1,3 +1,4 @@
+# 백준 1911 흙길 보수하기
 import math
 
 n, l = map(int, input().split())

@@ -1,3 +1,4 @@
+# 백준 2506 점수계산
 n = int(input())
 score = list(map(int, input().split()))
 sum = 0

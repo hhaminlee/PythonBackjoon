@@ -1,3 +1,4 @@
+# 백준 2644 촌수계산
 from collections import deque, defaultdict
 
 def bfs_dist(graph, start, n):

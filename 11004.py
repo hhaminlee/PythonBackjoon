@@ -1,3 +1,4 @@
+# 백준 11004 K번째 수
 import sys
 input = sys.stdin.readline
 

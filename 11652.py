@@ -1,3 +1,4 @@
+# 백준 11652 카드
 import sys
 from collections import Counter
 input = sys.stdin.readline

@@ -1,3 +1,4 @@
+# 백준 1181 단어 정렬
 import sys
 input = sys.stdin.readline
 

@@ -1,3 +1,4 @@
+# 백준 1972 놀라운 문자열
 while True:
     words = input().strip()
     if words == '*':

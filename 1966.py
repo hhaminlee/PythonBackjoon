@@ -1,3 +1,4 @@
+# 백준 1966 프린터 큐
 n = int(input())
 aa =[]
 for i in range(n):
