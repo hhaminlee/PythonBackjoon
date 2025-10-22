@@ -112,13 +112,13 @@ def analyze_with_ai(problem_info, code):
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise ValueError("GOOGLE_API_KEY 환경 변수가 설정되지 않았습니다.")
-    
+
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel('gemini-2.5-flash')
 
     prompt = f"""
-    아래 백준 문제와 제 파이썬 풀이 코드를 분석해서 간결한 블로그 포스트를 작성해주세요.
-    제 코드에 실제로 구현된 내용만 기반으로 작성하고, 일반적인 이론 설명은 최소화하세요.
+    다음 백준 문제와 실제 작성한 파이썬 코드를 분석해서 **코드에 실제로 구현된 내용만** 기반으로 JSON을 생성하세요.
+    코드에 없는 내용은 절대 추측하지 마세요. 주석이 있다면 주석 분석을 최우선으로 하세요.
 
     ### 문제
     제목: {problem_info['title']}
@@ -129,21 +129,36 @@ def analyze_with_ai(problem_info, code):
     {code}
     ```
 
-    ### JSON 출력 형식 (이 형식으로만 답변)
+    ### JSON 출력 형식 (반드시 이 형식으로만 답변)
     {{
-      "problem_summary": "문제 핵심을 1문장으로",
-      "solution_idea": {{
-        "core_method": "코드에서 사용한 알고리즘/자료구조만 간단히 (예: 그리디, 정렬)",
-        "approach": "제 코드가 어떻게 동작하는지 핵심 로직만 2-3문장으로",
-        "lesson": "이 코드의 핵심 포인트 1문장"
+      "problem_core": "문제의 핵심을 한 문장으로 설명",
+
+      "code_flow": {{
+        "step1": "코드의 첫 번째 주요 로직 (주석이나 실제 코드 기준)",
+        "step2": "코드의 두 번째 주요 로직",
+        "step3": "코드의 세 번째 주요 로직 (없으면 생략)"
       }},
-      "complexity_analysis": {{
-        "time_complexity": "O() 표기",
-        "time_explanation": "제 코드 기준으로 1문장",
-        "space_complexity": "O() 표기",
-        "space_explanation": "제 코드 기준으로 1문장"
-      }}
+
+      "trial_and_error": [
+        {{
+          "issue": "시행착오 상황 (주석에 '틀림', '오류', '수정' 등이 있을 경우만)",
+          "solution": "해결 방법"
+        }}
+      ],
+
+      "code_points": [
+        "코드에서 눈여겨볼 특징 1 (실제 코드 기준)",
+        "코드에서 눈여겨볼 특징 2"
+      ],
+
+      "key_lesson": "이 코드를 통해 배운 핵심 한 가지 (1문장)"
     }}
+
+    **중요 지침**:
+    1. 주석에 있는 내용을 최우선으로 분석하세요
+    2. 코드에 없는 내용은 절대 지어내지 마세요
+    3. trial_and_error는 주석에 명시적으로 언급된 경우만 포함하고, 없으면 빈 배열 []로 반환하세요
+    4. code_flow의 step3는 정말 중요한 로직이 3개 이상일 때만 포함하세요
     """
 
     try:
@@ -165,39 +180,201 @@ def build_markdown(meta, code, ai_analysis):
     """AI 분석 결과를 바탕으로 마크다운 포스트를 생성합니다."""
     num = meta["num"]
     title = meta.get("title") or meta.get("fetched_title", "")
-    head = f"# [백준] {num} {title}".rstrip()
+    today = datetime.now().strftime("%Y-%m-%d")
 
-    out = [head + "\n\n"]
-    
-    # AI 분석 결과가 있을 경우 우선 사용
+    # HTML 스타일 정의
+    style = """<style>
+.boj-post {
+    max-width: 800px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    color: #1a1a1a;
+}
+.problem-header {
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 1.5rem;
+    margin-bottom: 3rem;
+}
+.problem-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+.problem-meta {
+    color: #666;
+    font-size: 0.9rem;
+}
+.problem-meta a {
+    color: #1a1a1a;
+    text-decoration: none;
+    border-bottom: 1px solid #1a1a1a;
+}
+.section {
+    margin-bottom: 2.5rem;
+}
+.section h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: #1a1a1a;
+    border-left: 3px solid #1a1a1a;
+    padding-left: 0.75rem;
+}
+.section-content {
+    padding-left: 1rem;
+}
+.step-item {
+    padding: 0.5rem 0;
+    color: #333;
+}
+.error-box {
+    background: #f5f5f5;
+    border-left: 3px solid #666;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+}
+.error-box h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a1a;
+}
+.error-box p {
+    margin: 0.5rem 0;
+    color: #333;
+}
+.point-item {
+    padding: 0.4rem 0;
+    color: #333;
+    line-height: 1.8;
+}
+.lesson-box {
+    background: #f5f5f5;
+    padding: 1.5rem;
+    border-left: 3px solid #1a1a1a;
+    font-size: 1rem;
+    color: #1a1a1a;
+    line-height: 1.8;
+}
+pre {
+    background: #f5f5f5;
+    padding: 1.5rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #1a1a1a;
+}
+.footer-meta {
+    text-align: center;
+    padding: 2rem 0;
+    margin-top: 3rem;
+    border-top: 1px solid #e0e0e0;
+    color: #666;
+    font-size: 0.9rem;
+}
+.footer-meta a {
+    color: #1a1a1a;
+    text-decoration: none;
+    border-bottom: 1px solid #1a1a1a;
+}
+</style>
+
+<div class="boj-post">
+
+"""
+
+    out = [style]
+
+    # AI 분석 결과가 있을 경우
     if ai_analysis:
-        summary = ai_analysis.get("problem_summary", "AI 요약 생성에 실패했습니다.")
-        idea = ai_analysis.get("solution_idea", {})
-        complexity = ai_analysis.get("complexity_analysis", {})
+        problem_core = ai_analysis.get("problem_core", "")
+        code_flow = ai_analysis.get("code_flow", {})
+        trial_and_error = ai_analysis.get("trial_and_error", [])
+        code_points = ai_analysis.get("code_points", [])
+        key_lesson = ai_analysis.get("key_lesson", "")
 
-        out.append("## 문제 요약\n")
-        out.append(f"{summary}\n\n***\n\n")
+        # 문제
+        out.append('<div class="section">\n')
+        out.append("<h2>문제</h2>\n")
+        out.append(f'<div class="section-content">\n<p>{problem_core}</p>\n</div>\n')
+        out.append("</div>\n\n")
 
-        out.append("## 풀이 아이디어\n")
-        out.append(f"- **핵심 방법**: {idea.get('core_method', 'N/A')}\n")
-        out.append(f"- **접근 방식**: {idea.get('approach', 'N/A')}\n")
-        out.append(f"- **배운 점**: {idea.get('lesson', 'N/A')}\n\n")
+        # 풀이 과정
+        out.append('<div class="section">\n')
+        out.append("<h2>풀이 과정</h2>\n")
+        out.append('<div class="section-content">\n')
+        if code_flow.get("step1"):
+            out.append(f'<div class="step-item"><strong>1.</strong> {code_flow["step1"]}</div>\n')
+        if code_flow.get("step2"):
+            out.append(f'<div class="step-item"><strong>2.</strong> {code_flow["step2"]}</div>\n')
+        if code_flow.get("step3"):
+            out.append(f'<div class="step-item"><strong>3.</strong> {code_flow["step3"]}</div>\n')
+        out.append("</div>\n")
+        out.append("</div>\n\n")
 
-        out.append("## 복잡도 분석\n")
-        out.append(f"**시간 복잡도**: {complexity.get('time_complexity', 'N/A')}\n")
-        out.append(f"_{complexity.get('time_explanation', '')}_\n\n")
-        out.append(f"**공간 복잡도**: {complexity.get('space_complexity', 'N/A')}\n")
-        out.append(f"_{complexity.get('space_explanation', '')}_\n\n")
+        # 시행착오 (있을 경우에만)
+        if trial_and_error:
+            out.append('<div class="section">\n')
+            out.append("<h2>시행착오</h2>\n")
+            out.append('<div class="section-content">\n')
+            for i, item in enumerate(trial_and_error, 1):
+                issue = item.get("issue", "")
+                solution = item.get("solution", "")
+                out.append('<div class="error-box">\n')
+                out.append(f"<h3>문제상황 {i}</h3>\n")
+                out.append(f"<p>{issue}</p>\n")
+                out.append(f"<p><strong>→ 해결:</strong> {solution}</p>\n")
+                out.append("</div>\n")
+            out.append("</div>\n")
+            out.append("</div>\n\n")
 
-    else: # AI 분석 실패 시 기본 템플릿
-        out.append("## 문제 요약\n\n***\n\n## 풀이 아이디어\n\n## 복잡도 분석\n\n")
+        # 핵심 포인트
+        if code_points:
+            out.append('<div class="section">\n')
+            out.append("<h2>핵심 포인트</h2>\n")
+            out.append('<div class="section-content">\n')
+            for point in code_points:
+                out.append(f'<div class="point-item">• {point}</div>\n')
+            out.append("</div>\n")
+            out.append("</div>\n\n")
 
-    out.append("## 파이썬 코드\n")
-    out.append(f"```python\n{code}\n```\n\n")
+        # 배운 점
+        if key_lesson:
+            out.append('<div class="section">\n')
+            out.append("<h2>배운 점</h2>\n")
+            out.append(f'<div class="lesson-box">{key_lesson}</div>\n')
+            out.append("</div>\n\n")
 
-    out.append("## 문제 링크\n")
-    out.append(f"{BASE}{num}\n")
-    
+    else:  # AI 분석 실패 시 기본 템플릿
+        out.append('<div class="section">\n<h2>문제</h2>\n<div class="section-content"></div>\n</div>\n\n')
+        out.append('<div class="section">\n<h2>풀이 과정</h2>\n<div class="section-content"></div>\n</div>\n\n')
+        out.append('<div class="section">\n<h2>핵심 포인트</h2>\n<div class="section-content"></div>\n</div>\n\n')
+        out.append('<div class="section">\n<h2>배운 점</h2>\n<div class="lesson-box"></div>\n</div>\n\n')
+
+    # 코드
+    out.append('<div class="section">\n')
+    out.append("<h2>코드</h2>\n")
+    out.append('<pre><code class="language-python">')
+    # HTML 특수문자 이스케이프
+    escaped_code = code.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+    out.append(escaped_code)
+    out.append('</code></pre>\n')
+    out.append("</div>\n\n")
+
+    # 문제 링크 (맨 마지막, 임베딩 가능)
+    out.append('<div class="footer-meta">\n')
+    out.append(f'<a href="{BASE}{num}" target="_blank">백준 {num}번 문제 바로가기 →</a>\n')
+    out.append("</div>\n\n")
+
+    out.append("</div>\n")
+
     return "".join(out)
 
 def main():
