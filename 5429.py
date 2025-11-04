@@ -2,10 +2,6 @@
 
 import math
 
-# 0,0 -> 0,5
-# 0,1 -> 1(y위치),4(len - 기존 y 위치)
-# 0,2 -> 2,3
-
 n = int(input())
 before = [input().strip() for _ in range(n)]
 
