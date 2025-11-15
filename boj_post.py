@@ -108,70 +108,92 @@ def fetch_problem(num, cache_dir=".boj_cache", timeout=10):
 # --- AI 분석 로직 (핵심) ---
 
 def analyze_with_ai(problem_info, code):
-    """Gemini API를 사용하여 문제와 코드를 분석하고 해설을 생성합니다."""
-    api_key = os.getenv("GOOGLE_API_KEY")
-    if not api_key:
-        raise ValueError("GOOGLE_API_KEY 환경 변수가 설정되지 않았습니다.")
+    """Ollama를 사용하여 문제와 코드를 분석하고 해설을 생성합니다."""
 
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    prompt = f"""한국어로만 답변하세요. 영어는 절대 사용하지 마세요.
 
-    prompt = f"""
-    다음 백준 문제와 실제 작성한 파이썬 코드를 분석해서 **코드에 실제로 구현된 내용만** 기반으로 JSON을 생성하세요.
-    코드에 없는 내용은 절대 추측하지 마세요. 주석이 있다면 주석 분석을 최우선으로 하세요.
+백준 문제와 파이썬 코드를 분석해서 JSON으로 답하세요:
 
-    ### 문제
-    제목: {problem_info['title']}
-    {problem_info['description']}
+### 문제
+제목: {problem_info['title']}
+{problem_info['description']}
 
-    ### 제 코드
-    ```python
-    {code}
-    ```
+### 코드
+```python
+{code}
+```
 
-    ### JSON 출력 형식 (반드시 이 형식으로만 답변)
+다음 JSON 형식으로만 답하세요. 각 항목은 2-3문장으로 자세히 설명해주세요:
+
+{{
+  "problem_core": "문제의 핵심을 한국어 2-3문장으로 자세히 설명",
+  "code_flow": {{
+    "step1": "첫 번째 단계를 한국어 2-3문장으로 자세히",
+    "step2": "두 번째 단계를 한국어 2-3문장으로 자세히",
+    "step3": "세 번째 단계를 한국어 2-3문장으로 자세히"
+  }},
+  "trial_and_error": [
     {{
-      "problem_core": "문제의 핵심을 한 문장으로 설명",
-
-      "code_flow": {{
-        "step1": "코드의 첫 번째 주요 로직 (주석이나 실제 코드 기준)",
-        "step2": "코드의 두 번째 주요 로직",
-        "step3": "코드의 세 번째 주요 로직 (없으면 생략)"
-      }},
-
-      "trial_and_error": [
-        {{
-          "issue": "시행착오 상황 (주석에 '틀림', '오류', '수정' 등이 있을 경우만)",
-          "solution": "해결 방법"
-        }}
-      ],
-
-      "code_points": [
-        "코드에서 눈여겨볼 특징 1 (실제 코드 기준)",
-        "코드에서 눈여겨볼 특징 2"
-      ],
-
-      "key_lesson": "이 코드를 통해 배운 핵심 한 가지 (1문장)"
+      "issue": "겪었던 문제상황을 한국어 2-3문장으로",
+      "solution": "해결방법을 한국어 2-3문장으로"
     }}
+  ],
+  "code_points": [
+    "특징 1을 한국어 2-3문장으로 자세히",
+    "특징 2를 한국어 2-3문장으로 자세히",
+    "특징 3을 한국어 2-3문장으로 자세히"
+  ],
+  "key_lesson": "배운 점을 한국어 2-3문장으로 자세히 설명"
+}}
 
-    **중요 지침**:
-    1. 주석에 있는 내용을 최우선으로 분석하세요
-    2. 코드에 없는 내용은 절대 지어내지 마세요
-    3. trial_and_error는 주석에 명시적으로 언급된 경우만 포함하고, 없으면 빈 배열 []로 반환하세요
-    4. code_flow의 step3는 정말 중요한 로직이 3개 이상일 때만 포함하세요
-    """
+한국어로만 작성하고, 모든 항목을 2-3문장으로 자세히 설명해주세요."""
 
     try:
-        response = model.generate_content(prompt)
+        import subprocess
+        
+        # Ollama CLI 호출
+        result = subprocess.run(
+            ['ollama', 'run', 'qwen2.5:7b'],
+            input=prompt,
+            text=True,
+            capture_output=True,
+            timeout=120
+        )
+        
+        if result.returncode != 0:
+            print(f"[ERROR] Ollama 실행 실패: {result.stderr}", file=sys.stderr)
+            return None
+            
+        response_text = result.stdout.strip()
+        
         # AI 응답에서 JSON 부분만 추출
-        json_text = re.search(r'```json\n({.*?})\n```', response.text, re.DOTALL)
+        json_text = re.search(r'```json\n({.*?})\n```', response_text, re.DOTALL)
         if json_text:
-            return json.loads(json_text.group(1))
+            json_str = json_text.group(1)
         else:
-            return json.loads(response.text)
+            # JSON만 있는 경우, 중괄호로 시작하고 끝나는 부분 찾기
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+            if json_match:
+                json_str = json_match.group(1)
+            else:
+                json_str = response_text.strip()
+                
+        # JSON 문자열 정리 (잘못된 문자 제거)
+        import unicodedata
+        
+        # 제어 문자 제거
+        json_str = ''.join(char for char in json_str if unicodedata.category(char)[0] != 'C' or char in '\n\r\t')
+        
+        # 마지막 콤마 제거
+        json_str = re.sub(r',(\s*[}\]])', r'\1', json_str)
+        
+        # 잘못된 줄바꿈 제거 (JSON 문자열 내부의 불필요한 개행)
+        json_str = re.sub(r'([^\\])\n', r'\1 ', json_str)
+        
+        return json.loads(json_str)
     except Exception as e:
         print(f"[ERROR] AI 분석 중 오류 발생: {e}", file=sys.stderr)
-        print(f"AI 응답 내용: {response.text if 'response' in locals() else 'N/A'}", file=sys.stderr)
+        print(f"AI 응답 내용: {response_text if 'response_text' in locals() else 'N/A'}", file=sys.stderr)
         return None
 
 # --- 마크다운 생성 로직 (수정) ---
